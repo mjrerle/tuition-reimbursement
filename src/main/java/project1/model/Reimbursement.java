@@ -1,16 +1,18 @@
 package project1.model;
 
-import java.util.Date;
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.util.Objects;
 
 public class Reimbursement {
     private int r_id;
     private String event_type;
     private double percent_coverage;
     private String status;
-    private Date submission_date;
+    private Timestamp submission_date;
     private Date event_start_date;
     private Date event_end_date;
-    private Date event_daily_start_time;
+    private Timestamp event_daily_start_time;
     private String event_address;
     private String event_description;
     private double amount_requested;
@@ -18,12 +20,13 @@ public class Reimbursement {
     private String event_grading_format;
     private String event_passing_grade;
     private String justification_comment;
+    private String stage;
     private int u_id;
 
-    public Reimbursement(int r_id, String event_type, double percent_coverage, String status, Date submission_date,
-            Date event_start_date, Date event_end_date, Date event_daily_start_time, String event_address,
+    public Reimbursement(int r_id, String event_type, double percent_coverage, String status, Timestamp submission_date,
+            Date event_start_date, Date event_end_date, Timestamp event_daily_start_time, String event_address,
             String event_description, double amount_requested, double amount_granted, String event_grading_format,
-            String event_passing_grade, String justification_comment, int u_id) {
+            String event_passing_grade, String justification_comment, String stage, int u_id) {
         this.r_id = r_id;
         this.event_type = event_type;
         this.percent_coverage = percent_coverage;
@@ -39,6 +42,7 @@ public class Reimbursement {
         this.event_grading_format = event_grading_format;
         this.event_passing_grade = event_passing_grade;
         this.justification_comment = justification_comment;
+        this.stage = stage;
         this.u_id = u_id;
     }
 
@@ -74,11 +78,11 @@ public class Reimbursement {
         this.status = status;
     }
 
-    public Date getSubmission_date() {
+    public Timestamp getSubmission_date() {
         return this.submission_date;
     }
 
-    public void setSubmission_date(Date submission_date) {
+    public void setSubmission_date(Timestamp submission_date) {
         this.submission_date = submission_date;
     }
 
@@ -98,11 +102,11 @@ public class Reimbursement {
         this.event_end_date = event_end_date;
     }
 
-    public Date getEvent_daily_start_time() {
+    public Timestamp getEvent_daily_start_time() {
         return this.event_daily_start_time;
     }
 
-    public void setEvent_daily_start_time(Date event_daily_start_time) {
+    public void setEvent_daily_start_time(Timestamp event_daily_start_time) {
         this.event_daily_start_time = event_daily_start_time;
     }
 
@@ -162,12 +166,36 @@ public class Reimbursement {
         this.justification_comment = justification_comment;
     }
 
+    public String getStage() {
+        return this.stage;
+    }
+
+    public void setStage(String stage) {
+        this.stage = stage;
+    }
+
     public int getU_id() {
         return this.u_id;
     }
 
     public void setU_id(int u_id) {
         this.u_id = u_id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this)
+            return true;
+        if (!(o instanceof Reimbursement)) {
+            return false;
+        }
+        Reimbursement reimbursement = (Reimbursement) o;
+        return r_id == reimbursement.r_id && Objects.equals(event_type, reimbursement.event_type) && percent_coverage == reimbursement.percent_coverage && Objects.equals(status, reimbursement.status) && Objects.equals(submission_date, reimbursement.submission_date) && Objects.equals(event_start_date, reimbursement.event_start_date) && Objects.equals(event_end_date, reimbursement.event_end_date) && Objects.equals(event_daily_start_time, reimbursement.event_daily_start_time) && Objects.equals(event_address, reimbursement.event_address) && Objects.equals(event_description, reimbursement.event_description) && amount_requested == reimbursement.amount_requested && amount_granted == reimbursement.amount_granted && Objects.equals(event_grading_format, reimbursement.event_grading_format) && Objects.equals(event_passing_grade, reimbursement.event_passing_grade) && Objects.equals(justification_comment, reimbursement.justification_comment) && Objects.equals(stage, reimbursement.stage) && u_id == reimbursement.u_id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(r_id, event_type, percent_coverage, status, submission_date, event_start_date, event_end_date, event_daily_start_time, event_address, event_description, amount_requested, amount_granted, event_grading_format, event_passing_grade, justification_comment, stage, u_id);
     }
 
 }

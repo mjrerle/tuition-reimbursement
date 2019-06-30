@@ -1,0 +1,59 @@
+<head>
+  <title>Login</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+
+<body>
+  <div class="container">
+    <div class="row"></div>
+    <div class="row">
+      <div class="col-md-4"></div>
+      <div class="col-md-4">
+        <form>
+          <h2 class="text-center">Log in</h2>
+          <div class="form-group">
+            <input id="username" name="username" type="text" class="form-control" placeholder="Username"
+              required="required">
+          </div>
+          <div class="form-group">
+            <input id="password" onkeydown="handleLogin(event)" name="password" type="password" class="form-control"
+              placeholder="Password" required="required">
+          </div>
+          <div class="form-group">
+            <button onclick="handleLogin()" type="button" class="btn btn-primary btn-block">Log in</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+</body>
+
+<script>
+  function handleLogin(event) {
+    if (event != null && event.keyCode != 13) {
+      return;
+    }
+    let user = document.getElementById('username').value;
+    let pass = document.getElementById('password').value;
+    let body = `username=${user}&password=${pass}`;
+    console.log(body);
+    
+    let xhttp = new XMLHttpRequest();
+    xhttp.open("POST", 'http://localhost:8080/project1/api/user/login.do', true);
+
+    xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+    xhttp.onreadystatechange = function () {
+      if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
+        console.log(this.response);
+        
+        // window.location.href = "http://localhost:8080/project1/dashboard.html";
+      }
+    }
+    xhttp.send(body);
+  }
+</script>

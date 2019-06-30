@@ -1,19 +1,21 @@
 package project1.model;
 
+import java.util.Objects;
+
 public class Attachment {
     private int a_id;
-    private int uuid;
     private String title;
     private String type;
     private String src;
+    private int u_id;
     private int r_id;
 
-    public Attachment(int a_id, int uuid, String title, String type, String src, int r_id) {
+    public Attachment(int a_id, String title, String type, String src, int u_id, int r_id) {
         this.a_id = a_id;
-        this.uuid = uuid;
         this.title = title;
         this.type = type;
         this.src = src;
+        this.u_id = u_id;
         this.r_id = r_id;
     }
 
@@ -23,14 +25,6 @@ public class Attachment {
 
     public void setA_id(int a_id) {
         this.a_id = a_id;
-    }
-
-    public int getUuid() {
-        return this.uuid;
-    }
-
-    public void setUuid(int uuid) {
-        this.uuid = uuid;
     }
 
     public String getTitle() {
@@ -57,6 +51,14 @@ public class Attachment {
         this.src = src;
     }
 
+    public int getU_id() {
+        return this.u_id;
+    }
+
+    public void setU_id(int u_id) {
+        this.u_id = u_id;
+    }
+
     public int getR_id() {
         return this.r_id;
     }
@@ -65,4 +67,20 @@ public class Attachment {
         this.r_id = r_id;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == this)
+            return true;
+        if (!(o instanceof Attachment)) {
+            return false;
+        }
+        Attachment attachment = (Attachment) o;
+        return a_id == attachment.a_id && Objects.equals(title, attachment.title) && Objects.equals(type, attachment.type) && Objects.equals(src, attachment.src) && u_id == attachment.u_id && r_id == attachment.r_id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(a_id, title, type, src, u_id, r_id);
+    }
+   
 }

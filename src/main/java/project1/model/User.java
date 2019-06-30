@@ -1,5 +1,7 @@
 package project1.model;
 
+import java.util.Objects;
+
 public class User {
     private int u_id;
     private String username;
@@ -8,10 +10,9 @@ public class User {
     private int supervisor_id;
     private int department_head_id;
     private String department;
-    private int d_id;
 
-
-    public User(int u_id, String username, String password, String email_address, int supervisor_id, int department_head_id, String department, int d_id) {
+    public User(int u_id, String username, String password, String email_address, int supervisor_id,
+            int department_head_id, String department) {
         this.u_id = u_id;
         this.username = username;
         this.password = password;
@@ -19,7 +20,6 @@ public class User {
         this.supervisor_id = supervisor_id;
         this.department_head_id = department_head_id;
         this.department = department;
-        this.d_id = d_id;
     }
 
     public int getU_id() {
@@ -78,12 +78,22 @@ public class User {
         this.department = department;
     }
 
-    public int getD_id() {
-        return this.d_id;
+    @Override
+    public boolean equals(Object o) {
+        if (o == this)
+            return true;
+        if (!(o instanceof User)) {
+            return false;
+        }
+        User user = (User) o;
+        return u_id == user.u_id && Objects.equals(username, user.username) && Objects.equals(password, user.password)
+                && Objects.equals(email_address, user.email_address) && supervisor_id == user.supervisor_id
+                && department_head_id == user.department_head_id && Objects.equals(department, user.department);
     }
 
-    public void setD_id(int d_id) {
-        this.d_id = d_id;
+    @Override
+    public int hashCode() {
+        return Objects.hash(u_id, username, password, email_address, supervisor_id, department_head_id, department);
     }
 
 }

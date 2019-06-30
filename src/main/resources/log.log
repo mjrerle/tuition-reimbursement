@@ -1,0 +1,45 @@
+2019-06-26 08:36:37 INFO  ReimbursementLogger:28 - oracle.jdbc.driver.T4CConnection@7085bdee
+2019-06-26 08:41:59 INFO  ReimbursementLogger:26 - oracle.jdbc.driver.ForwardOnlyResultSet@2145b572
+2019-06-26 12:28:56 INFO  ReimbursementLogger:27 - 0
+2019-06-26 12:29:46 INFO  ReimbursementLogger:27 - 0
+2019-06-26 12:29:54 INFO  ReimbursementLogger:27 - 0
+2019-06-26 12:29:59 INFO  ReimbursementLogger:27 - 0
+2019-06-26 14:20:16 INFO  ReimbursementLogger:27 - 0
+2019-06-26 18:29:32 WARN  ReimbursementLogger:118 - ORA-02291: integrity constraint (MATT.SYS_C005545) violated - parent key not found
+ORA-06512: at "MATT.CREATE_NEW_REIMBURSEMENT", line 5
+
+2019-06-26 19:09:46 WARN  ReimbursementLogger:165 - ORA-00957: duplicate column name
+
+2019-06-27 18:59:38 INFO  ReimbursementLogger:27 - 0
+2019-06-30 11:07:43 FATAL ReimbursementLogger:33 - src/main/resources/connection.properties (No such file or directory)
+2019-06-30 11:49:28 WARN  ReimbursementLogger:96 - here
+2019-06-30 11:51:02 WARN  ReimbursementLogger:96 - java.util.Collections$3@52b902d3
+2019-06-30 11:52:12 WARN  ReimbursementLogger:96 - []
+2019-06-30 12:12:06 WARN  ReimbursementLogger:96 - 
+2019-06-30 12:12:06 WARN  ReimbursementLogger:97 - password
+2019-06-30 12:12:06 WARN  ReimbursementLogger:99 - java.util.Collections$3@6184b700
+2019-06-30 12:12:09 WARN  ReimbursementLogger:96 - 
+2019-06-30 12:12:09 WARN  ReimbursementLogger:97 - password
+2019-06-30 12:12:09 WARN  ReimbursementLogger:99 - java.util.Collections$3@24688f3a
+2019-06-30 12:13:40 WARN  ReimbursementLogger:96 - 
+2019-06-30 12:13:40 WARN  ReimbursementLogger:97 - password
+2019-06-30 12:13:40 WARN  ReimbursementLogger:99 - java.util.Collections$3@10470c91
+2019-06-30 12:20:33 WARN  ReimbursementLogger:96 - jonathan
+2019-06-30 12:20:33 WARN  ReimbursementLogger:97 - password
+2019-06-30 12:23:33 WARN  ReimbursementLogger:99 - 
+2019-06-30 12:28:06 INFO  ReimbursementLogger:27 - 0
+2019-06-30 12:28:06 WARN  ReimbursementLogger:99 - project1.model.User@99bc3db3
+2019-06-30 12:32:41 WARN  ReimbursementLogger:99 - project1.model.User@99bc3db3
+2019-06-30 12:49:39 WARN  ReimbursementLogger:99 - 
+2019-06-30 12:51:44 WARN  ReimbursementLogger:99 - 
+2019-06-30 12:55:47 WARN  ReimbursementLogger:99 - jonathan
+2019-06-30 12:55:47 WARN  ReimbursementLogger:100 - password
+2019-06-30 12:55:47 WARN  ReimbursementLogger:101 - project1.model.User@99bc3db3
+2019-06-30 12:59:22 WARN  ReimbursementLogger:99 - jonathan
+2019-06-30 12:59:22 WARN  ReimbursementLogger:100 - password
+2019-06-30 12:59:22 WARN  ReimbursementLogger:101 - project1.model.User@99bc3db3
+2019-06-30 16:32:10 WARN  ReimbursementLogger:35 - /project1/api/user/login.do
+2019-06-30 16:32:51 WARN  ReimbursementLogger:35 - /project1/api/user/login.do
+2019-06-30 16:32:51 WARN  ReimbursementLogger:96 - jonathan
+2019-06-30 16:32:51 WARN  ReimbursementLogger:97 - password
+2019-06-30 16:32:52 WARN  ReimbursementLogger:100 - project1.model.User@99bc3db3

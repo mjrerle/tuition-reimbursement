@@ -19,7 +19,7 @@ public class DBConnector {
             if (conn == null) {
                 Class.forName("oracle.jdbc.driver.OracleDriver");
                 Properties props = new Properties();
-                FileInputStream input = new FileInputStream("src/main/resources/connection.properties");
+                FileInputStream input = new FileInputStream("/Users/matt/dev/wk/project1/src/main/resources/connection.properties");
                 props.load(input);
                 String endpoint = props.getProperty("url");
                 String username = props.getProperty("username");

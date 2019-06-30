@@ -6,4 +6,6 @@ public interface IUser {
     public User getUser(String username, String password);
     public User getUser(String username);
     public User getUser(int u_id);
+    public User getUserSupervisor(int u_id);
+    public User getUserDepartmentHead(int u_id);
 }

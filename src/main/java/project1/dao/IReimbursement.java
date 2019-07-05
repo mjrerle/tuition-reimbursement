@@ -7,6 +7,7 @@ import project1.model.Reimbursement;
 public interface IReimbursement {
   public List<Reimbursement> getReimbursements();
   public List<Reimbursement> getReimbursementsByUser(int u_id);
+  public int getRidOfLastInserted();
   public Reimbursement getReimbursement(int r_id);
   public boolean createReimbursement(Reimbursement reimbursement);
   public boolean deleteReimbursement(int r_id);

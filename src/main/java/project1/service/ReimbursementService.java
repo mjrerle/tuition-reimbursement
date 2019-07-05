@@ -30,4 +30,8 @@ public class ReimbursementService {
   public static boolean updateReimbursement(Reimbursement reimbursement) {
     return rdao.updateReimbursement(reimbursement);
   }
+
+  public static int getRidOfLastInserted() {
+    return rdao.getRidOfLastInserted();
+  }
 }

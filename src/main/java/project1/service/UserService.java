@@ -1,10 +1,15 @@
 package project1.service;
 
+import java.util.List;
+
 import project1.dao.UserDAO;
 import project1.model.User;
 
 public class UserService {
   public static UserDAO udao = new UserDAO();
+  public static List<User> getUsers() {
+    return udao.getUsers();
+  }
   public static User getUser(String username) {
     return udao.getUser(username);
   }
@@ -23,5 +28,9 @@ public class UserService {
 
   public static User getUserDepartmentHead(int u_id) {
     return udao.getUserDepartmentHead(u_id);
+  }
+
+  public static List<User> getUnderlings(int u_id) {
+    return udao.getUnderlings(u_id);
   }
 }

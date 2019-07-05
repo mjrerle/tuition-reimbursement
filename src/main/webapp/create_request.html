@@ -2,19 +2,20 @@
   <meta charset="utf-8">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
     integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
   <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./style.css">
   <script src="./utils.js"></script>
   <script src="./stats.js"></script>
   <script src="./attachment.js"></script>
-  <script src="./edit_request.js"></script>
+  <script src="./create_request.js"></script>
 </head>
 
-<body id="body" onload="isAuthenticated(init, getStats)">
+<body id="create-request-page" onload="isAuthenticated(init, getStats)">
   <div class="container">
     <div class="jumbotron bg-info pb-1">
       <h4 class="text-right text-white" id="userBox"></h4>
-      <h1 class="text-white display-3">Requests Terminal</h1>
+      <h1 class="text-white display-3">Submit a request</h1>
       <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <a class="navbar-brand" disabled>INITECH</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
@@ -25,11 +26,11 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="nav nav-pills mr-auto">
             <li class="nav-item">
-              <a class="nav-link active" href="/project1/dashboard.html">Dashboard<span
+              <a class="nav-link" href="/project1/dashboard.html">Dashboard<span
                   class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/project1/create_request.html">Submit A New Request</a>
+              <a class="nav-link active" href="/project1/create_request.html">Submit A New Request</a>
             </li>
           </ul>
           <div class="float-right">
@@ -40,12 +41,6 @@
       </nav>
       <div id="stats_container"></div>
     </div>
-  </div>
-  <div class="container">
-    <div class="col-md-12">
-      <ul class="list-group" id="reimbursements"></ul>
-    </div>
-  </div>
 
-
+  </div>
 </body>

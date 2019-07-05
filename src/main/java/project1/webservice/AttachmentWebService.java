@@ -26,6 +26,8 @@ public class AttachmentWebService {
       if (attachments.size() > 0) {
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(attachments);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().append(json).close();
       } else {
         response.sendError(404);
@@ -51,6 +53,8 @@ public class AttachmentWebService {
       if (attachments.size() > 0) {
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(attachments);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().append(json).close();
       } else {
         response.sendError(404);
@@ -74,6 +78,8 @@ public class AttachmentWebService {
       if (attachment != null) {
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(attachment);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().append(json).close();
       } else {
         response.sendError(403);
@@ -101,6 +107,8 @@ public class AttachmentWebService {
       if (succeeded) {
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(succeeded);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().append(json).close();
       } else {
         response.sendError(403);
@@ -124,6 +132,8 @@ public class AttachmentWebService {
       if (succeeded) {
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(succeeded);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().append(json).close();
       } else {
         response.sendError(403);
@@ -169,6 +179,8 @@ public class AttachmentWebService {
       if (succeeded) {
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(succeeded);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().append(json).close();
       } else {
         response.sendError(404);

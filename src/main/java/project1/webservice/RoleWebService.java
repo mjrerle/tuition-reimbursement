@@ -32,6 +32,8 @@ public class RoleWebService {
       if(roles.size() > 0) {
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(roles);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().append(json).close();
       } else {
         response.sendError(404);

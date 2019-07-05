@@ -26,6 +26,34 @@ public class CommentWebService {
       if (comments.size() > 0) {
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(comments);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().append(json).close();
+      } else {
+        response.sendError(404);
+      }
+    } catch (IOException e) {
+      logger.warn(e.getMessage());
+      e.printStackTrace();
+    }
+  }
+
+  public static void getCommentsForReimbursement(HttpServletRequest request, HttpServletResponse response) {
+    List<Comment> comments = new ArrayList<>();
+    String maybeRid = request.getParameter("r_id");
+
+    if (maybeRid != null) {
+      int r_id = Integer.parseInt(maybeRid);
+      comments = CommentService.getCommentsForReimbursement(r_id);
+    }
+
+    try {
+      if (comments.size() > 0) {
+        
+        ObjectMapper om = new ObjectMapper();
+        String json = om.writeValueAsString(comments);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().append(json).close();
       } else {
         response.sendError(404);
@@ -51,6 +79,8 @@ public class CommentWebService {
       if (comments.size() > 0) {
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(comments);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().append(json).close();
       } else {
         response.sendError(404);
@@ -74,6 +104,8 @@ public class CommentWebService {
       if (comment != null) {
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(comment);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().append(json).close();
       } else {
         response.sendError(403);
@@ -101,6 +133,8 @@ public class CommentWebService {
       if (succeeded) {
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(succeeded);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().append(json).close();
       } else {
         response.sendError(403);
@@ -124,6 +158,8 @@ public class CommentWebService {
       if (succeeded) {
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(succeeded);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().append(json).close();
       } else {
         response.sendError(403);
@@ -169,6 +205,8 @@ public class CommentWebService {
       if (succeeded) {
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(succeeded);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().append(json).close();
       } else {
         response.sendError(404);

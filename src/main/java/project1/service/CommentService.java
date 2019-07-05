@@ -15,6 +15,10 @@ public class CommentService {
     return cdao.getCommentsByUserForReimbursement(u_id, r_id);
   }
 
+  public static List<Comment> getCommentsForReimbursement(int r_id) {
+    return cdao.getCommentsForReimbursement(r_id);
+  }
+
   public static Comment getComment(int c_id) {
     return cdao.getComment(c_id);
   }

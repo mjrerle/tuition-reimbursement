@@ -82,7 +82,7 @@ public class AttachmentDAO implements IAttachment {
       cs.setString(1, attachment.getTitle());
       cs.setString(2, attachment.getType());
       cs.setString(3, attachment.getSrc());
-      cs.setString(1, Integer.toString(attachment.getU_id()));
+      cs.setString(4, Integer.toString(attachment.getU_id()));
       cs.setString(5, Integer.toString(attachment.getR_id()));
       cs.execute();
       return true;

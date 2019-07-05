@@ -30,10 +30,10 @@ public class ReimbursementDAO implements IReimbursement {
         result.add(new Reimbursement(Integer.parseInt(rs.getString("r_id")), rs.getString("event_type"),
             Double.parseDouble(rs.getString("percent_coverage")), rs.getString("status"),
             rs.getTimestamp("submission_date"), rs.getDate("event_start_date"), rs.getDate("event_end_date"),
-            rs.getTimestamp("event_daily_start_time"), rs.getString("event_address"), rs.getString("event_description"),
+            rs.getString("event_daily_start_time"), rs.getString("event_address"), rs.getString("event_description"),
             Double.parseDouble(rs.getString("amount_requested")), Double.parseDouble(rs.getString("amount_granted")),
             rs.getString("event_grading_format"), rs.getString("event_passing_grade"),
-            rs.getString("justification_comment"), rs.getString("stage"), Integer.parseInt(rs.getString("u_id"))));
+            rs.getString("justification_comment"), Integer.parseInt(rs.getString("stage")), Integer.parseInt(rs.getString("u_id"))));
       }
       return result;
     } catch (SQLException e) {
@@ -54,10 +54,10 @@ public class ReimbursementDAO implements IReimbursement {
         result.add(new Reimbursement(Integer.parseInt(rs.getString("r_id")), rs.getString("event_type"),
             Double.parseDouble(rs.getString("percent_coverage")), rs.getString("status"),
             rs.getTimestamp("submission_date"), rs.getDate("event_start_date"), rs.getDate("event_end_date"),
-            rs.getTimestamp("event_daily_start_time"), rs.getString("event_address"), rs.getString("event_description"),
+            rs.getString("event_daily_start_time"), rs.getString("event_address"), rs.getString("event_description"),
             Double.parseDouble(rs.getString("amount_requested")), Double.parseDouble(rs.getString("amount_granted")),
             rs.getString("event_grading_format"), rs.getString("event_passing_grade"),
-            rs.getString("justification_comment"), rs.getString("stage"), Integer.parseInt(rs.getString("u_id"))));
+            rs.getString("justification_comment"), Integer.parseInt(rs.getString("stage")), Integer.parseInt(rs.getString("u_id"))));
 
       }
       return result;
@@ -78,10 +78,10 @@ public class ReimbursementDAO implements IReimbursement {
         return new Reimbursement(Integer.parseInt(rs.getString("r_id")), rs.getString("event_type"),
             Double.parseDouble(rs.getString("percent_coverage")), rs.getString("status"),
             rs.getTimestamp("submission_date"), rs.getDate("event_start_date"), rs.getDate("event_end_date"),
-            rs.getTimestamp("event_daily_start_time"), rs.getString("event_address"), rs.getString("event_description"),
+            rs.getString("event_daily_start_time"), rs.getString("event_address"), rs.getString("event_description"),
             Double.parseDouble(rs.getString("amount_requested")), Double.parseDouble(rs.getString("amount_granted")),
             rs.getString("event_grading_format"), rs.getString("event_passing_grade"),
-            rs.getString("justification_comment"), rs.getString("stage"), Integer.parseInt(rs.getString("u_id")));
+            rs.getString("justification_comment"), Integer.parseInt(rs.getString("stage")), Integer.parseInt(rs.getString("u_id")));
       }
     } catch (SQLException e) {
       logger.warn(e.getMessage());
@@ -91,6 +91,8 @@ public class ReimbursementDAO implements IReimbursement {
 
   @Override
   public boolean createReimbursement(Reimbursement reimbursement) {
+    logger.warn(reimbursement);
+  
     try {
       String sql = "call create_new_reimbursement(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
       CallableStatement cs = conn.prepareCall(sql);
@@ -100,7 +102,7 @@ public class ReimbursementDAO implements IReimbursement {
       cs.setTimestamp(4, reimbursement.getSubmission_date());
       cs.setDate(5, reimbursement.getEvent_start_date());
       cs.setDate(6, reimbursement.getEvent_end_date());
-      cs.setTimestamp(7, reimbursement.getEvent_daily_start_time());
+      cs.setString(7, reimbursement.getEvent_daily_start_time());
       cs.setString(8, reimbursement.getEvent_address());
       cs.setString(9, reimbursement.getEvent_description());
       cs.setString(10, Double.toString(reimbursement.getAmount_requested()));
@@ -108,7 +110,7 @@ public class ReimbursementDAO implements IReimbursement {
       cs.setString(12, reimbursement.getEvent_grading_format());
       cs.setString(13, reimbursement.getEvent_passing_grade());
       cs.setString(14, reimbursement.getJustification_comment());
-      cs.setString(15, reimbursement.getStage());
+      cs.setString(15, Integer.toString(reimbursement.getStage()));
       cs.setString(16, Integer.toString(reimbursement.getU_id()));
 
       cs.execute();
@@ -147,7 +149,7 @@ public class ReimbursementDAO implements IReimbursement {
       ps.setTimestamp(4, reimbursement.getSubmission_date());
       ps.setDate(5, reimbursement.getEvent_start_date());
       ps.setDate(6, reimbursement.getEvent_end_date());
-      ps.setTimestamp(7, reimbursement.getEvent_daily_start_time());
+      ps.setString(7, reimbursement.getEvent_daily_start_time());
       ps.setString(8, reimbursement.getEvent_address());
       ps.setString(9, reimbursement.getEvent_description());
       ps.setString(10, Double.toString(reimbursement.getAmount_requested()));
@@ -155,7 +157,7 @@ public class ReimbursementDAO implements IReimbursement {
       ps.setString(12, reimbursement.getEvent_grading_format());
       ps.setString(13, reimbursement.getEvent_passing_grade());
       ps.setString(14, reimbursement.getJustification_comment());
-      ps.setString(15, reimbursement.getStage());
+      ps.setString(15, Integer.toString(reimbursement.getStage()));
       ps.setString(16, Integer.toString(reimbursement.getU_id()));
       ps.setString(17, Integer.toString(reimbursement.getR_id()));
 
@@ -166,6 +168,22 @@ public class ReimbursementDAO implements IReimbursement {
       logger.warn(e.getMessage());
     }
     return false;
+  }
+
+  @Override
+  public int getRidOfLastInserted() {
+    try {
+      String sql = "select r_id from reimbursements where r_id = (select max(r_id) from reimbursements)";
+      PreparedStatement ps = conn.prepareStatement(sql);
+      ResultSet rs = ps.executeQuery();
+      while(rs.next()) {
+        return Integer.parseInt(rs.getString("r_id"));
+      }
+    } catch (SQLException e) {
+      logger.warn(e.getMessage());
+    }
+
+    return -1;
   }
 
 }

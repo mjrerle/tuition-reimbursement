@@ -5,6 +5,8 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,6 +30,8 @@ public class ReimbursementWebService {
       if (reimbursements.size() > 0) {
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(reimbursements);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().append(json).close();
       } else {
         response.sendError(404);
@@ -49,6 +53,8 @@ public class ReimbursementWebService {
       if (reimbursements.size() > 0) {
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(reimbursements);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().append(json).close();
       } else {
         response.sendError(404);
@@ -70,6 +76,8 @@ public class ReimbursementWebService {
       if (reimbursement != null) {
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(reimbursement);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().append(json).close();
       } else {
         response.sendError(404);
@@ -97,7 +105,7 @@ public class ReimbursementWebService {
     String maybeAmountGranted = request.getParameter("amount_granted");
     String maybeEventGradingFormat = request.getParameter("event_grading_format");
     String maybeEventPassingGrade = request.getParameter("event_passing_grade");
-    String maybeJustificationComment = request.getParameter("justificiation_comment");
+    String maybeJustificationComment = request.getParameter("justification_comment");
     String maybeStage = request.getParameter("stage");
     String maybeUid = request.getParameter("u_id");
 
@@ -109,16 +117,54 @@ public class ReimbursementWebService {
         && (maybeUid != null)) {
       reimbursement = new Reimbursement(0, maybeEventType, Double.parseDouble(maybePercentCoverage), maybeStatus,
           new Timestamp(Long.parseLong(maybeSubmissionDate)), new Date(Long.parseLong(maybeEventStartDate)),
-          new Date(Long.parseLong(maybeEventEndDate)), new Timestamp(Long.parseLong(maybeEventDailyStartTime)),
-          maybeEventAddress, maybeEventDescription, Double.parseDouble(maybeAmountRequested),
-          Double.parseDouble(maybeAmountGranted), maybeEventGradingFormat, maybeEventPassingGrade,
-          maybeJustificationComment, maybeStage, Integer.parseInt(maybeUid));
+          new Date(Long.parseLong(maybeEventEndDate)), maybeEventDailyStartTime, maybeEventAddress,
+          maybeEventDescription, Double.parseDouble(maybeAmountRequested), Double.parseDouble(maybeAmountGranted),
+          maybeEventGradingFormat, maybeEventPassingGrade, maybeJustificationComment, Integer.parseInt(maybeStage),
+          Integer.parseInt(maybeUid));
+      
       succeeded = ReimbursementService.createReimbursement(reimbursement);
     }
     try {
       if (succeeded) {
+        // get the reimbursement that was just added... yuck
+        List<Reimbursement> reimbursements = ReimbursementService.getReimbursementsByUser(Integer.parseInt(maybeUid));
+        reimbursement = reimbursements.get(reimbursements.size() - 1);
+
+        // spawn a timer thread to count down from 7 days(how much time the
+        // approver has to approve the request)
+        new Timer().schedule(new TimerTask() {
+          @Override
+          public void run() {
+            List<Reimbursement> reimbursements = ReimbursementService
+                .getReimbursementsByUser(Integer.parseInt(maybeUid));
+            Reimbursement reimbursement = reimbursements.get(reimbursements.size() - 1);
+            reimbursement.setStage(reimbursement.getStage() + 1);
+            switch (reimbursement.getStage()) {
+            case 1:
+              reimbursement.setStatus("approval_by_supervisor");
+              break;
+            case 2:
+              reimbursement.setStatus("approval_by_department_head");
+              break;
+            case 3:
+              reimbursement.setStatus("approval_by_first_benco");
+              break;
+            case 4:
+              reimbursement.setStatus("appoval_by_final_benco");
+              break;
+            }
+            ReimbursementService.updateReimbursement(reimbursement);
+            logger.warn("===REIMBURSEMENT AUTO APPROVED===");
+            logger.warn("===REIMBURSEMENT IS NOW AT STAGE " + reimbursement.getStage() + "===");
+            if (reimbursement.getStage() >= 4) {
+              cancel();
+            }
+          }
+        }, System.currentTimeMillis(), 7 * 24 * 60 * 60 * 1000);
         ObjectMapper om = new ObjectMapper();
-        String json = om.writeValueAsString(succeeded);
+        String json = om.writeValueAsString(reimbursement.getR_id());
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().append(json).close();
       } else {
         response.sendError(403);
@@ -140,6 +186,8 @@ public class ReimbursementWebService {
       if (succeeded) {
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(succeeded);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().append(json).close();
       } else {
         response.sendError(403);
@@ -155,6 +203,7 @@ public class ReimbursementWebService {
     boolean succeeded = false;
 
     String maybeRid = request.getParameter("r_id");
+
     if (maybeRid != null) {
       reimbursement = ReimbursementService.getReimbursement(Integer.parseInt(maybeRid));
       if (reimbursement != null) {
@@ -184,7 +233,7 @@ public class ReimbursementWebService {
         }
         String maybeEventDailyStartTime = request.getParameter("event_daily_start_time");
         if (maybeEventDailyStartTime != null) {
-          reimbursement.setEvent_daily_start_time(new Timestamp(Long.parseLong(maybeEventDailyStartTime)));
+          reimbursement.setEvent_daily_start_time(maybeEventDailyStartTime);
         }
         String maybeEventAddress = request.getParameter("event_address");
         if (maybeEventAddress != null) {
@@ -210,13 +259,13 @@ public class ReimbursementWebService {
         if (maybeEventPassingGrade != null) {
           reimbursement.setEvent_passing_grade(maybeEventPassingGrade);
         }
-        String maybeJustificationComment = request.getParameter("justificiation_comment");
+        String maybeJustificationComment = request.getParameter("justification_comment");
         if (maybeJustificationComment != null) {
           reimbursement.setJustification_comment(maybeJustificationComment);
         }
         String maybeStage = request.getParameter("stage");
         if (maybeStage != null) {
-          reimbursement.setStage(maybeStage);
+          reimbursement.setStage(Integer.parseInt(maybeStage));
         }
         String maybeUid = request.getParameter("u_id");
         if (maybeUid != null) {
@@ -224,14 +273,15 @@ public class ReimbursementWebService {
         }
       }
 
+      succeeded = ReimbursementService.updateReimbursement(reimbursement);
     }
-
-    succeeded = ReimbursementService.updateReimbursement(reimbursement);
 
     try {
       if (succeeded) {
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(succeeded);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().append(json).close();
       } else {
         response.sendError(403);
@@ -241,4 +291,24 @@ public class ReimbursementWebService {
       e.printStackTrace();
     }
   }
+
+  public static void getRidOfLastInserted(HttpServletRequest request, HttpServletResponse response) {
+
+    int r_id = ReimbursementService.getRidOfLastInserted();
+    try {
+      if (r_id >= 0) {
+        ObjectMapper om = new ObjectMapper();
+        String json = om.writeValueAsString(r_id);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().append(json).close();
+      } else {
+        response.sendError(404);
+      }
+    } catch (IOException e) {
+      logger.warn(e.getMessage());
+      e.printStackTrace();
+    }
+  }
+
 }

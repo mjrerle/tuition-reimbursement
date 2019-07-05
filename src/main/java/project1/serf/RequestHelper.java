@@ -5,7 +5,6 @@ import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
 
@@ -32,20 +31,16 @@ public class RequestHelper {
   public static void Process(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     String uri = request.getRequestURI();
+    logger.info(uri);
     switch (uri) {
-    case baseURI + "/dashboard.html": {
-      HttpSession sess = request.getSession();
-      logger.warn(sess.getAttribute("loggedIn"));
-      if (sess.getAttribute("loggedIn") != null) {
-        request.getRequestDispatcher(baseURI + "/dashboard.html").include(request, response);
-      } else {
-        response.sendRedirect(baseURI + "/login.html");
-      }
-      break;
-    }
 
     case apiBase + userApi + "/getUser.do": {
       UserWebService.getUser(request, response);
+      break;
+    }
+
+    case apiBase + userApi + "/getUsers.do": {
+      UserWebService.getUsers(request, response);
       break;
     }
 
@@ -56,6 +51,11 @@ public class RequestHelper {
 
     case apiBase + userApi + "/getUserDepartmentHead.do": {
       UserWebService.getUserDepartmentHead(request, response);
+      break;
+    }
+
+    case apiBase + userApi + "/getUnderlings.do": {
+      UserWebService.getUnderlings(request, response);
       break;
     }
 
@@ -76,6 +76,11 @@ public class RequestHelper {
 
     case apiBase + reimbursementApi + "/getReimbursement.do": {
       ReimbursementWebService.getReimbursement(request, response);
+      break;
+    }
+
+    case apiBase + reimbursementApi + "/getRidOfLastInserted.do": {
+      ReimbursementWebService.getRidOfLastInserted(request, response);
       break;
     }
 
@@ -114,6 +119,11 @@ public class RequestHelper {
       break;
     }
 
+    case apiBase + commentApi + "/getCommentsForReimbursement.do": {
+      CommentWebService.getCommentsForReimbursement(request, response);
+      break;
+    }
+
     case apiBase + commentApi + "/getCommentsByUserForReimbursement.do": {
       CommentWebService.getCommentsByUserForReimbursement(request, response);
       break;
@@ -144,7 +154,7 @@ public class RequestHelper {
       break;
     }
 
-    case apiBase + attachmentApi + "/getCommentsByUserForReimbursement.do": {
+    case apiBase + attachmentApi + "/getAttachmentsByUserForReimbursement.do": {
       AttachmentWebService.getAttachmentsByUserForReimbursement(request, response);
       break;
     }

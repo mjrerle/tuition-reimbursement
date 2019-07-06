@@ -1,6 +1,43 @@
 //run on page load
+
 function init() {
   let uId = readCookie('loggedInUid');
+
+  let xhttp = new XMLHttpRequest();
+
+  xhttp.open('GET', 'http://localhost:8080/project1/api/user/getUser.do?u_id=' + uId);
+
+  // xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+  xhttp.onreadystatechange = function () {
+    if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
+      const user = JSON.parse(this.responseText);
+      getUserRoles(user);
+    }
+  }
+  xhttp.send();
+}
+
+function setRoles(roles) {
+  let i = 0;
+  let powered = false;
+  let benco = false;
+  roles.forEach(role => {
+    setCookie(`userRole_${i++}`, role.name);
+    if (role.can_approve_ri_basic || role.can_approve_ri_intermediate) {
+      powered = true;
+    } else if (role.can_approve_ri_super) {
+      benco = true;
+    }
+  });
+  return {
+    benco,
+    powered
+  };
+}
+
+function getUserRoles(user) {
+  let uId = user.u_id;
 
   let xhttp = new XMLHttpRequest();
 
@@ -11,35 +48,29 @@ function init() {
   xhttp.onreadystatechange = function () {
     if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
       let roles = JSON.parse(this.responseText);
-      let powered = false;
-      let benco = false;
-      let i = 0;
       //used to figure out approval permissions
-      roles.forEach(role => {
-        setCookie(`userRole_${i++}`, role.name);
-        if (role.can_approve_ri_basic || role.can_approve_ri_intermediate) {
-          powered = true;
-        } else if (role.can_approve_ri_super) {
-          benco = true;
-        }
-      });
+      let {
+        benco,
+        powered
+      } = setRoles(roles);
       populateUserBox();
 
       if (benco) {
-        getAllUsers();
+        getAllUsers(user);
       } else if (powered) {
-        getUnderlings(uId);
+        getUnderlings(user);
       } else {
-        getUserRequests(uId, true);
+        getUserRequests(user, uId, true);
       }
     }
   }
   xhttp.send();
 }
 
-function getAllUsers() {
+
+function getAllUsers(user) {
   let xhttp = new XMLHttpRequest();
-  const uId = readCookie('loggedInUid');
+  const uId = user.u_id;
 
   xhttp.open('GET', 'http://localhost:8080/project1/api/user/getUsers.do');
 
@@ -48,13 +79,14 @@ function getAllUsers() {
   xhttp.onreadystatechange = function () {
     if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
       let users = JSON.parse(this.responseText);
-      getAllRequestsForUsers(uId, users);
+      getAllRequestsForUsers(user, users);
     }
   }
   xhttp.send();
 }
 
-function getUnderlings(uId) {
+function getUnderlings(user) {
+  const uId = user.u_id;
   let xhttp = new XMLHttpRequest();
 
   xhttp.open('GET', 'http://localhost:8080/project1/api/user/getUnderlings.do?u_id=' + uId);
@@ -63,18 +95,21 @@ function getUnderlings(uId) {
 
   xhttp.onreadystatechange = function () {
     if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
-      let users = JSON.parse(this.responseText);
-      getAllRequestsForUsers(uId, users);
+      let otherUsers = JSON.parse(this.responseText);
+      getAllRequestsForUsers(user, otherUsers);
     }
   }
   xhttp.send();
 }
 
-function getAllRequestsForUsers(uId, users) {
-  getUserRequests(uId, true);
-  users.forEach(user => {
-    if (user.u_id !== uId) {
-      getUserRequests(user.u_id);
+function getAllRequestsForUsers(user, otherUsers) {
+  const uId = user.u_id;
+  getUserRequests(user, true);
+
+  otherUsers.forEach(otherUser => {
+    if (otherUser.u_id !== uId) {
+      getUserRequests(otherUser);
+
     }
   });
 }
@@ -84,7 +119,8 @@ function reloadAllReimbursements() {
   init();
 }
 
-function getUserRequests(uId, single = false) {
+function getUserRequests(user, single = false) {
+  const uId = user.u_id;
   let params = `?u_id=${uId}`;
   let xhttp = new XMLHttpRequest();
 
@@ -95,8 +131,7 @@ function getUserRequests(uId, single = false) {
   xhttp.onreadystatechange = function () {
     if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
       let reimbursements = JSON.parse(this.responseText);
-
-      getUserSpecificData(reimbursements, uId, single);
+      getUserSpecificData(reimbursements, user, single);
     } else if (this.readyState === XMLHttpRequest.DONE && this.status === 404) {
       if (!document.getElementById(`err_no_re`) && document.getElementById('reimbursements').childElementCount < 1) {
         document.getElementById(`reimbursements`).parentElement.insertAdjacentHTML('afterend', `<span id="err_no_re" class="text-danger">No reimbursements found!</span>`);
@@ -107,46 +142,48 @@ function getUserRequests(uId, single = false) {
 }
 
 
-function getUserSpecificData(reimbursements, uId, single = false) {
+function getUserSpecificData(reimbursements, user, single = false) {
+  const uId = user.u_id;
   let loggedInUid = readCookie('loggedInUid');
 
+  //return because this function will print the stats container
   if ((uId === loggedInUid) && !single) {
     return;
   }
+  let stats = '';
+  if (!single) {
+    let html = populateStatsContainer(reimbursements);
 
-  let params = `?u_id=${uId}`;
-  let xhttp = new XMLHttpRequest();
-
-  xhttp.open('GET', 'http://localhost:8080/project1/api/user/getUser.do' + params);
-
-  // xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-  xhttp.onreadystatechange = function () {
-    if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
-      const user = JSON.parse(this.responseText);
-      let stats = '';
-      if (!single) {
-        let html = populateStatsContainer(reimbursements);
-
-        stats = `
-          <li class="list-group-item" id="user_${user.u_id}">
-            <h3 class="text-dark">Amount available for ${prettyPipe(user.username)} in tuition reimbursement.</h3>
-            ${html}
-          </li>
-        `;
-      }
-
-
-      getReimbursementData(reimbursements, stats);
-    }
+    stats = `
+      ${html}
+    `;
   }
-  xhttp.send();
+
+  getReimbursementData(user, reimbursements, stats);
+
+  // let params = `?u_id=${uId}`;
+  // let xhttp = new XMLHttpRequest();
+
+  // xhttp.open('GET', 'http://localhost:8080/project1/api/user/getUser.do' + params);
+
+  // // xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+  // xhttp.onreadystatechange = function () {
+  //   if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
+  //     const user = JSON.parse(this.responseText);
+  //     let stats = '';
+
+  // }
+  // }
+  // xhttp.send();
 
 }
 
 
 
-function timeLeftOnReimbursement(submissionDate, eventStartDate) {
+function timeLeftOnReimbursement(reimbursement) {
+  let submissionDate = reimbursement.submission_date;
+  let eventStartDate = reimbursement.event_start_date;
   submissionDate = new Date(submissionDate).getTime();
   eventStartDate = new Date(eventStartDate).getTime();
   let now = Date.now();
@@ -155,11 +192,11 @@ function timeLeftOnReimbursement(submissionDate, eventStartDate) {
   //add week from submission date
   let oneWeekFromSubDate = submissionDate + (7 * 24 * 60 * 60 * 1000);
   let timeUntilAutoApproval = (oneWeekFromSubDate - now) / 1000 / 60 / 60;
-  let message = 'until this request is auto approved.';
+  let message = 'until this request is auto-approved.';
   let sclass = 'text-success';
   //if less than 14 days, mark as urgent
   if ((twoWeeksFromNow - eventStartDate) >= 0) {
-    message += `<h4 class="text-danger">===URGENT REQUIRES ACTION!===</h4>`;
+    message += `<h4 class="bg-danger text-white text-center">===URGENT REQUIRES ACTION!===</h4>`;
   }
   if ((timeUntilAutoApproval / 24) <= 14) {
     sclass = 'text-warning';
@@ -178,6 +215,7 @@ function timeLeftOnReimbursement(submissionDate, eventStartDate) {
       <span class="text-danger">${timeUntilAutoApproval.toFixed(2)} hours left</span> ${message}
     `;
   } else {
+    autoApprove();
     return `This reimbursement has been auto approved.`;
   }
 }
@@ -186,22 +224,22 @@ function singleCommentHtml(comment, rId, uId) {
   let html = ``;
   if (uId === comment.u_id) {
     html += `
-    <li class="list-group-item" id="comment_${comment.c_id}">
+    <li class="list-group-item" id="comment_${comment.c_id}_for_${rId}">
       <div class="container">
-        <h4>${comment.title} - ${comment.status}</h4>
+        <h4>${comment.title} - ${prettyPipe(comment.status)}</h4>
         <p>${comment.body}</p>
-        <button type="button" onclick="replyToComment(this)" data-cid=${comment.c_id} value="${rId}" class="btn btn-dark btn-sm">Reply</button>
-        <button type="button" onclick="deleteComment(this)" data-cid=${comment.c_id} value="${rId}" class="btn btn-danger btn-sm">Delete</button>
+        <button type="button" onclick="replyToComment(this)" value="${rId}" class="btn btn-dark btn-sm">Reply</button>
+        <button type="button" onclick="deleteComment(this)" data-cid="${comment.c_id}" value="${comment.c_id}" class="btn btn-danger btn-sm">Delete</button>
       </div>
     </li>
   `;
   } else {
     html += `
-    <li class="list-group-item" id="comment_${comment.c_id}">
+    <li class="list-group-item" id="comment_${comment.c_id}_for_${rId}">
       <div class="container">
-        <h4>${comment.title} - ${comment.status}</h4>
+        <h4>${comment.title} - ${prettyPipe(comment.status)}</h4>
         <p>${comment.body}</p>
-        <button type="button" onclick="replyToComment(this)" data-cid=${comment.c_id} value="${rId}" class="btn btn-dark btn-sm">Reply</button>
+        <button type="button" onclick="replyToComment(this)" data-cid="${comment.c_id}" value="${rId}" class="btn btn-dark btn-sm">Reply</button>
       </div>
     </li>
   `;
@@ -220,25 +258,25 @@ function allCommentsHtml(comments, rId) {
 }
 
 
-function reimbursementHtml(reimbursement, comments) {
+function reimbursementHtml(reimbursement, comments, stats, user) {
   let roles = getRoles();
   let baseHtml = ``;
   const uId = readCookie('loggedInUid');
 
-  baseHtml = baseReimbursementHtml(reimbursement);
+  baseHtml = baseReimbursementHtml(reimbursement, false, stats, user);
   roles.forEach(role => {
     if (reimbursement.stage === 0 && (role === `dictator` || (role === `supervisor` && uId !== reimbursement.u_id))) {
 
-      baseHtml = baseReimbursementHtml(reimbursement, true);
+      baseHtml = baseReimbursementHtml(reimbursement, true, stats, user);
     } else if (reimbursement.stage === 1 && (role === `dictator` || (role === `department_head` && uId !== reimbursement.u_id))) {
 
-      baseHtml = baseReimbursementHtml(reimbursement, true);
-    } else if (reimbursement.stage === 2 && (role === `dictator` || (role === `benco` && uId !== reimbursement.u_id))) {
+      baseHtml = baseReimbursementHtml(reimbursement, true, stats, user);
+    } else if (reimbursement.stage === 2 && (role === `dictator` || (role === `benefits_coordinator` && uId !== reimbursement.u_id))) {
 
-      baseHtml = baseReimbursementHtml(reimbursement, true);
-    } else if (reimbursement.stage === 3 && (role === `benco` && uId !== reimbursement.u_id)) {
+      baseHtml = baseReimbursementHtml(reimbursement, true, stats, user);
+    } else if (reimbursement.stage === 3 && (role === `benefits_coordinator` && uId !== reimbursement.u_id)) {
 
-      baseHtml = baseReimbursementHtml(reimbursement, true);
+      baseHtml = baseReimbursementHtml(reimbursement, true, stats, user);
     }
   });
 
@@ -251,11 +289,18 @@ function reimbursementHtml(reimbursement, comments) {
   }
 }
 
-function approveRequest(event) {
-  let rId = event.value;
-  let stage = Number(event.getAttribute('data-stage')) + 1;
-  let amountRequested = event.getAttribute('data-requested');
-  let status = `pending_supervisor_approval`;
+function autoApprove(reimbursement) {
+  sendApproval(
+    prepareApproval(
+      reimbursement.rId,
+      reimbursement.stage,
+      reimbursement.amount_requested,
+      reimbursement.status
+    )
+  );
+}
+
+function prepareApproval(rId, stage, amountRequested, status) {
   /**
     reimbursement.setStatus("approval_by_supervisor");
     reimbursement.setStatus("approval_by_department_head");
@@ -275,9 +320,18 @@ function approveRequest(event) {
     case 4:
       status = `approval_by_final_benco`;
   }
-  let paramsList = `r_id=${rId}&stage=${stage}&status=${status}`;
+  return {
+    'r_id': rId,
+    'stage': stage,
+    'amount_request': amountRequested,
+    'status': status
+  }
+}
+
+function sendApproval(reimbursement) {
+  let paramsList = `r_id=${reimbursement.r_id}&stage=${reimbursement.stage}&status=${reimbursement.status}`;
   if (stage >= 4) {
-    paramsList += `&amount_granted=${amountRequested}&amount_requested=0`;
+    paramsList += `&amount_granted=${reimbursement.amount_requested}&amount_requested=0`;
   }
   let xhttp = new XMLHttpRequest();
 
@@ -287,26 +341,43 @@ function approveRequest(event) {
 
   xhttp.onreadystatechange = function () {
     if (this.readyState === 4 && this.status === 200) {
-      document.getElementById(`reimbursement_${rId}_approve_btn`).disabled = true;
-      event.setAttribute('data-stage', stage + 1);
-      let reListItem = document.getElementById(`reimbursement_${rId}`);
-      if (!document.getElementById(`re_${rId}_app_success`)) {
-        reListItem.insertAdjacentHTML('afterend', successMessage(`Successfully approved reimbursement ${rId}`, `re_${rId}_app_success`));
+      document.getElementById(`reimbursement_${reimbursement.r_id}_approve_btn`).disabled = true;
+      event.setAttribute('data-stage', reimbursement.stage + 1);
+      let reListItem = document.getElementById(`reimbursement_${reimbursement.r_id}`);
+      if (!document.getElementById(`re_${reimbursement.r_id}_app_success`)) {
+        reListItem.insertAdjacentHTML('afterend', successMessage(`Successfully approved reimbursement ${reimbursement.r_id}`, `re_${reimbursement.r_id}_app_success`));
       }
     }
   }
   xhttp.send(paramsList);
 }
 
-function baseReimbursementHtml(reimbursement, approve = false) {
+function approveRequest(event) {
+  let rId = event.value;
+  let stage = Number(event.getAttribute('data-stage')) + 1;
+  let amountRequested = event.getAttribute('data-requested');
+  let status = `pending_supervisor_approval`;
+
+  sendApproval(
+    prepareApproval(
+      rId,
+      stage,
+      amountRequested,
+      status
+    )
+  );
+}
+
+function baseReimbursementHtml(reimbursement, approve = false, stats, user) {
   if (reimbursement.stage === 4) {
     return `
       <li class="list-group-item" id="reimbursement_${reimbursement.r_id}">
         <div class="input-group">
           <button class="btn btn-danger btn-sm" type="button" id="reimbursement_${reimbursement.r_id}_delete_btn" value="${reimbursement.r_id}" onclick="deleteRequest(this)">Delete</button>
-          <button type="button" onclick="replyToComment(this)" data-cid=${reimbursement.r_id} value="${reimbursement.r_id}" class="btn btn-dark btn-sm">Reply</button>
+          <button type="button" onclick="replyToComment(this)" value="${reimbursement.r_id}" class="btn btn-dark btn-sm">Reply</button>
+          <button class="btn btn-light btn-sm" type="button" onclick="showAttachments(this)" data-uid="${reimbursement.u_id}" value="${reimbursement.r_id}">Show attachments</button>
         </div>
-        ${basicReimbursementInformation(reimbursement)}
+        ${basicReimbursementInformation(reimbursement, true, stats, user)}
     `;
   }
   if (approve) {
@@ -317,7 +388,8 @@ function baseReimbursementHtml(reimbursement, approve = false) {
             <button class="btn btn-primary btn-sm" type="button" id="reimbursement_${reimbursement.r_id}_edit_btn" value='${JSON.stringify(reimbursement)}' onclick="openEditForm(this)">Edit</button>
             <button class="btn btn-success btn-sm" type="button" data-stage="${reimbursement.stage}" data-requested="${reimbursement.amount_requested}" id="reimbursement_${reimbursement.r_id}_approve_btn" value="${reimbursement.r_id}" onclick="approveRequest(this)">Approve</button>
             <button class="btn btn-danger btn-sm" type="button" id="reimbursement_${reimbursement.r_id}_delete_btn" value="${reimbursement.r_id}" onclick="deleteRequest(this)">Delete</button>
-            <button class="btn btn-dark btn-sm" type="button" onclick="replyToComment(this)" data-cid=${reimbursement.r_id} value="${reimbursement.r_id}" >Reply</button>
+            <button class="btn btn-dark btn-sm" type="button" onclick="replyToComment(this)" value="${reimbursement.r_id}" >Reply</button>
+            <button class="btn btn-light btn-sm" type="button" onclick="showAttachments(this)" data-uid="${reimbursement.u_id}" value="${reimbursement.r_id}">Show attachments</button>
           </div>
           <div class="input-group-append">
             <div class="custom-file">
@@ -326,7 +398,7 @@ function baseReimbursementHtml(reimbursement, approve = false) {
             </div>
           </div>
         </div>
-      ${basicReimbursementInformation(reimbursement)}
+      ${basicReimbursementInformation(reimbursement, false, stats, user)}
     `;
   }
   return `
@@ -335,38 +407,48 @@ function baseReimbursementHtml(reimbursement, approve = false) {
       <div class="input-group-prepend">
         <button class="btn btn-primary btn-sm" type="button" id="reimbursement_${reimbursement.r_id}_edit_btn" value='${JSON.stringify(reimbursement)}' onclick="openEditForm(this)">Edit</button>
         <button class="btn btn-danger btn-sm" type="button" id="reimbursement_${reimbursement.r_id}_delete_btn" value="${reimbursement.r_id}" onclick="deleteRequest(this)">Delete</button>
-        <button class="btn btn-dark btn-sm" type="button" onclick="replyToComment(this)" data-cid=${reimbursement.r_id} value="${reimbursement.r_id}" >Reply</button>
+        <button class="btn btn-dark btn-sm" type="button" onclick="replyToComment(this)" value="${reimbursement.r_id}" >Reply</button>
+        <button class="btn btn-light btn-sm" type="button" onclick="showAttachments(this)" data-uid="${reimbursement.u_id}" value="${reimbursement.r_id}">Show attachments</button>
       </div>
       <div class="input-group-append">
         <div class="custom-file">
           <label class="custom-file-label" id="attachment_label_for_${reimbursement.r_id}" for="attachments_for_${reimbursement.r_id}">(+) Attachments</label>
           <input onchange="handleAddAttachment(this, prepareAttachment)" data-rid="${reimbursement.r_id}" type="file" class="custom-file-input" id="attachments_for_${reimbursement.r_id}">
         </div>
-        <button class="btn btn-light btn-sm" type="button" onclick="showAttachments(this)" data-uid="${reimbursement.u_id}" value="${reimbursement.r_id}">Show attachments</button>
       </div>
     </div>
-   ${basicReimbursementInformation(reimbursement)}
+   ${basicReimbursementInformation(reimbursement, false, stats, user)}
 `;
 }
 
-function basicReimbursementInformation(reimbursement) {
+function basicReimbursementInformation(reimbursement, final = false, stats, user) {
+  let dateHtml = '';
+  let requestingHtml = '';
+  if (!final) {
+    dateHtml = ` and has ${timeLeftOnReimbursement(reimbursement)}`;
+    requestingHtml = `<p class="text-dark">Requesting <span class="text-success">$${reimbursement.amount_requested}</span>.</p>`;
+  }
   return `
-    <div class="container">
-      <p class="text-dark">Event (ID: ${reimbursement.r_id}) ${reimbursement.event_type} starts on <span class="font-weight-bold"><u>${new Date(reimbursement.event_start_date).toDateString()}</u></span> and has ${timeLeftOnReimbursement(reimbursement.submission_date, reimbursement.event_start_date)}</p>
-      <span class="text-info">Submitted on ${new Date(reimbursement.submission_date).toDateString()}</span>
+    <div class="">
+    <p class="text-info">${user.username} submitted this request on ${new Date(reimbursement.submission_date).toDateString()}</p>
+    <p class="text-dark">Event (ID: ${reimbursement.r_id}) ${reimbursement.event_type} starts on <span class="font-weight-bold"><u>${new Date(reimbursement.event_start_date).toDateString()}</u></span>${dateHtml}</p>
     </div>
     <div class="row">
-      <div class="col-md-6">
+      <div class="col-md-5">
         <p class="text-white bg-info text-center">This request is at the ${prettyPipe(reimbursement.status)} stage.</p>        
         <p class="text-dark">
           <h4 class="text-dark">Description - ${reimbursement.event_description}</h4>
           <blockquote class="blockquote">${reimbursement.justification_comment}
           <footer class="blockquote-footer"><cite title="Note from the employee">Note from the employee</cite></footer>
           </blockquote>
-          <p class="text-dark">Requesting <span class="text-success">$${reimbursement.amount_requested}</span>.</p>
+          ${requestingHtml}
         </p>
         </div>
-      <div class="col-md-6 container">
+      <div class="col-md-4">
+        <h5 class="font-weight-bold text-center">Available funds for ${prettyPipe(user.username)}</h5>
+        ${stats}
+      </div>
+      <div class="col-md-3">
         <div id="attachments_for_${reimbursement.r_id}_by_${reimbursement.u_id}" class="list-group"></div>
       </div>
     </div>
@@ -378,26 +460,36 @@ function showAttachments(event) {
   const rId = event.value;
   const uId = +event.getAttribute('data-uid');
   getAttachmentsByUserForReimbursement(uId, rId, (attachments) => {
-    attachments.forEach(attachment => {
-      ele = document.getElementById(`attachments_for_${rId}_by_${uId}`);
-      ele.insertAdjacentHTML('beforeend', attachmentHtml(attachment));
-    });
+    ele = document.getElementById(`attachments_for_${rId}_by_${uId}`);
+    ele.innerHTML = ``;
+    if (attachments && attachments.length > 0) {
+      attachments.forEach(attachment => {
+        ele.insertAdjacentHTML('beforeend', attachmentHtml(attachment));
+      });
+    } else {
+      ele.insertAdjacentHTML('beforeend', `
+        <h4 class="text-danger">No attachments found!</h4>
+      `);
+    }
   })
 }
 
-function getReimbursementData(reimbursements, stats) {
-  let container = document.getElementById('reimbursements');
+function getReimbursementData(user, reimbursements, stats) {
+  let container = document.getElementById(`reimbursements`);
+
 
   for (let i = 0; i < reimbursements.length; i++) {
     const reimbursement = reimbursements[i];
-    getComments(reimbursement, container, stats);
+
+    getComments(user, reimbursement, container, stats);
   }
+  //close the ul tag that opens in getUserSpecificData
 }
 
 function sendReply(event) {
   const rId = event.value;
-  const title = document.getElementById(`reply_to_${event.getAttribute('data-cid')}_title`).value;
-  const body = document.getElementById(`reply_to_${event.getAttribute('data-cid')}_body`).value;
+  const title = document.getElementById(`comment_for_${rId}_title`).value;
+  const body = document.getElementById(`comment_for_${rId}_body`).value;
   const username = readCookie(`loggedInUsername`);
   const uId = readCookie(`loggedInUid`);
   const comment = {
@@ -423,31 +515,35 @@ function sendReply(event) {
   xhttp.send(paramsList);
 }
 
-function getCommentForm(cId, rId) {
+function getCommentForm(rId) {
   return `
-    <div class="form-control" id="comment_${cId}_form">
-      <label for="reply_to_${cId}_title">Title</label>  
-      <input class="form-control" type="text" name="reply_to_${cId}_title" id="reply_to_${cId}_title" required>
-      <label for="reply_to_${cId}_body">Body</label>  
-      <textarea class="form-control" type="text" name="reply_to_${cId}_body" id="reply_to_${cId}_body" required></textarea>
-      <button onclick="sendReply(this)" data-cid="${cId}" value="${rId}" type="button" class="btn btn-primary btn-sm">Submit</button>
+    <li class="list-group-control" id="comment_for_${rId}_form">
+      <div class= "form-group">
+        <label for="comment_for_${rId}_title">Title</label>  
+        <input class="form-control" type="text" name="comment_for_${rId}_title" id="comment_for_${rId}_title" required>
+        <label for="comment_for_${rId}_body">Body</label>  
+        <textarea class="form-control" type="text" name="comment_for_${rId}_body" id="comment_for_${rId}_body" required></textarea>
+        <button onclick="sendReply(this)" value="${rId}" type="button" class="btn btn-primary btn-sm">Submit</button>
+      </div>
     </div>
   `;
 }
 
 function replyToComment(event) {
-  let parent = document.getElementById(`comment_${event.getAttribute('data-cid')}`);
-  let commentForm = document.getElementById(`comment_${event.getAttribute('data-cid')}_form`);
+  const rId = event.value;
+  let parent = document.getElementById(`comments_for_reimbursement_${rId}`);
+  let commentForm = document.getElementById(`comment_for_${rId}_form`);
   if (commentForm) {
     parent.removeChild(commentForm);
   } else {
-    parent.insertAdjacentHTML('beforeend', getCommentForm(event.getAttribute('data-cid'), event.value));
+    parent.insertAdjacentHTML('beforeend', getCommentForm(event.value));
   }
+
 }
 
 
 
-function getComments(reimbursement, container, stats) {
+function getComments(user, reimbursement, container, stats) {
   let rId = reimbursement.r_id;
   let params = `?r_id=${rId}`;
   let xhttp = new XMLHttpRequest();
@@ -459,25 +555,25 @@ function getComments(reimbursement, container, stats) {
   xhttp.onreadystatechange = function () {
     if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
       let comments = JSON.parse(this.responseText);
-      let commentsContainer = document.getElementById(`comments_for_reimbursement_${rId}`);
-      if (commentsContainer) {
-        commentsContainer.innerHTML = ``;
-      }
-      if (!document.getElementById(`user_${reimbursement.u_id}`)) {
-        container.insertAdjacentHTML('afterbegin', reimbursementHtml(reimbursement, comments) + stats);
-      } else {
-        container.insertAdjacentHTML('afterbegin', reimbursementHtml(reimbursement, comments));
-      }
 
+      appendComments(rId, reimbursement, container, stats, comments, user);
     } else if (this.readyState === XMLHttpRequest.DONE && this.status === 404) {
-      if (!document.getElementById(`user_${reimbursement.u_id}`)) {
-        container.insertAdjacentHTML('afterbegin', reimbursementHtml(reimbursement, null) + stats);
-      } else {
-        container.insertAdjacentHTML('afterbegin', reimbursementHtml(reimbursement, null));
-      }
+      appendComments(rId, reimbursement, container, stats, null, user)
     }
   }
   xhttp.send();
+}
+
+function appendComments(rId, reimbursement, container, stats, comments, user) {
+  let commentsContainer = document.getElementById(`comments_for_reimbursement_${rId}`);
+  if (commentsContainer) {
+    commentsContainer.innerHTML = ``;
+  }
+  if (!document.getElementById(`user_${reimbursement.u_id}`)) {
+    container.insertAdjacentHTML('afterbegin', reimbursementHtml(reimbursement, comments, stats, user));
+  } else {
+    container.insertAdjacentHTML('afterbegin', reimbursementHtml(reimbursement, comments, stats, user));
+  }
 }
 
 function openEditForm(event) {

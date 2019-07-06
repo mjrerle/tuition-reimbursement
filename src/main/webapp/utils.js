@@ -53,8 +53,7 @@ function logout() {
     eraseCookie(role.name);
   });
   console.log(document.cookie);
-  
-  // window.location.replace('http://localhost:8080/project1/login.html');
+  window.location.replace('http://localhost:8080/project1/login.html');
   
 }
 

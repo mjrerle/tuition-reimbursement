@@ -63,13 +63,41 @@ function requestForm(reimbursement) {
     `;
   }
   return `
-  <div class="container">
-    <div class="col-md-2"></div>
-    <div class="col-md-8">
-      <div class="form-group">
+  <div class="px-4 w-100">
+    <div class="form-row">
+      <div class="form-group col-md-4">
+
         <label for="username">Full Name</label>
         <input class="form-control" type="text" name="username" id="username" required>
+        
+      </div>
+      <div class="form-group col-md-4">
+        <label for="event_address">Event Address</label>
+        <input class="form-control" type="text" name="event_address" id="event_address" required>
+      </div>
 
+      <div class="form-group col-md-4">
+        <label for="amount_requested">Amount Requested</label>
+        <input class="form-control" onchange="adjustRequestedAmount(this)" type="number" name="amount_requested" id="amount_requested" required>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group col-md-4">
+        <label for="event_start_date">Event Start Date</label>
+        <input class="form-control" type="date" name="event_start_date" id="event_start_date" required>
+      </div>
+      <div class="form-group col-md-4">
+        <label for="event_end_date">Event End Date</label>
+        <input class="form-control" type="date" name="event_end_date" id="event_end_date" required>
+      </div>
+      <div class="form-group col-md-4">
+        <label for="event_start_time">Event Start Time</label>
+        <input class="form-control" type="time" name="event_daily_start_time" id="event_daily_start_time" required>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group col-md-4">
         <label for="event_type">Event Type</label>
 
         <select class="form-control" name="event_type" id="event_type" required>
@@ -82,25 +110,7 @@ function requestForm(reimbursement) {
         </select>
       </div>
 
-      <div class="form-group">
-        <label for="event_start_date">Event Start Date</label>
-        <input class="form-control" type="date" name="event_start_date" id="event_start_date" required>
-        <label for="event_end_date">Event End Date</label>
-        <input class="form-control" type="date" name="event_end_date" id="event_end_date" required>
-        <label for="event_start_time">Event Start Time</label>
-        <input class="form-control" type="time" name="event_daily_start_time" id="event_daily_start_time" required>
-      </div>
-      <div class="form-group">
-        <label for="event_address">Event Address</label>
-        <input class="form-control" type="text" name="event_address" id="event_address" required>
-        <label for="event_description">Event Description (< 128 characters)</label>
-        <textarea class="form-control" name="event_description" id="event_description" cols="50" rows="5"
-          required></textarea>
-        <label for="amount_requested">Amount Requested</label>
-        <input class="form-control" type="number" name="amount_requested" id="amount_requested" required>
-      </div>
-
-      <div class="form-group" id="event_grading">
+      <div class="form-group col-md-4" id="event_grading">
         <label for="event_grading_format">Event Grading Format</label>
         <select class="form-control" name="event_grading_format" id="event_grading_format">
           <option value="" selected disabled hidden>Choose a grading format</option>
@@ -109,15 +119,25 @@ function requestForm(reimbursement) {
           <option value="AF:A">Presentation</option>
           <option value="Custom:">Other</option>
         </select>
-        <label for="event_grading_format_2">Other: Specify passing grade for this event.</label>
+      </div>
+      <div class="form-group col-md-4">
+        <label for="event_grading_format_2">(Optional) Specify passing grade</label>
         <input id="event_grading_format_2" type="text" class="form-control" name="event_grading_format_2">
       </div>
-      <div class="form-group">
-        <label for="justification_comment">Justification</label>
-        <textarea class="form-control" name="justification_comment" id="justification_comment" cols="50" rows="5"
-          required></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group col-md-6">
+        <label for="event_description">Event Description</label>
+        <textarea class="form-control" name="event_description" id="event_description" cols="30" rows="3" required></textarea>
       </div>
-      <div class="form-group">
+      
+      <div class="form-group col-md-6">
+        <label for="justification_comment">Justification: Explain yourself in 256 characters.</label>
+        <textarea class="form-control" name="justification_comment" id="justification_comment" cols="30" rows="3" required></textarea>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group col-md-12">
         <div class="input-group mb-3">
           <div class="input-group-prepend">
             <span class="input-group-text">Upload</span>
@@ -128,9 +148,8 @@ function requestForm(reimbursement) {
           </div>
         </div>
       <button onclick="handleSumbit()" type="button" class="btn btn-primary">Submit Request</button>
-
     </div>
-    <div class="col-md-2"></div>
+
   </div>
   `;
 }

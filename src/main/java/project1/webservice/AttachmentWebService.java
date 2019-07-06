@@ -50,15 +50,11 @@ public class AttachmentWebService {
     }
 
     try {
-      if (attachments.size() > 0) {
-        ObjectMapper om = new ObjectMapper();
-        String json = om.writeValueAsString(attachments);
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        response.getWriter().append(json).close();
-      } else {
-        response.sendError(404);
-      }
+      ObjectMapper om = new ObjectMapper();
+      String json = om.writeValueAsString(attachments);
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+      response.getWriter().append(json).close();
     } catch (IOException e) {
       logger.warn(e.getMessage());
       e.printStackTrace();
@@ -97,8 +93,7 @@ public class AttachmentWebService {
     String maybeSrc = request.getParameter("src");
     String maybeUid = request.getParameter("u_id");
     String maybeRid = request.getParameter("r_id");
-    if ((maybeTitle != null) && (maybeType != null) && (maybeSrc != null) && (maybeUid != null)
-        && (maybeRid != null)) {
+    if ((maybeTitle != null) && (maybeType != null) && (maybeSrc != null) && (maybeUid != null) && (maybeRid != null)) {
       succeeded = AttachmentService.createAttachment(
           new Attachment(0, maybeTitle, maybeType, maybeSrc, Integer.parseInt(maybeUid), Integer.parseInt(maybeRid)));
     }
@@ -151,25 +146,25 @@ public class AttachmentWebService {
     if (maybeAid != null) {
       int a_id = Integer.parseInt(maybeAid);
       attachment = AttachmentService.getAttachment(a_id);
-      if(attachment != null) {
+      if (attachment != null) {
         String maybeTitle = request.getParameter("title");
-        if(maybeTitle != null) {
+        if (maybeTitle != null) {
           attachment.setTitle(maybeTitle);
         }
         String maybeType = request.getParameter("type");
-        if(maybeType != null) {
+        if (maybeType != null) {
           attachment.setType(maybeType);
         }
         String maybeSrc = request.getParameter("src");
-        if(maybeSrc != null) {
+        if (maybeSrc != null) {
           attachment.setSrc(maybeSrc);
         }
         String maybeUid = request.getParameter("u_id");
-        if(maybeUid != null) {
+        if (maybeUid != null) {
           attachment.setU_id(Integer.parseInt(maybeUid));
         }
         String maybeRid = request.getParameter("r_id");
-        if(maybeRid != null) {
+        if (maybeRid != null) {
           attachment.setR_id(Integer.parseInt(maybeRid));
         }
       }

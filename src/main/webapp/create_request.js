@@ -1,4 +1,3 @@
-
 //run on page load
 function init() {
   let uId = readCookie('loggedInUid');
@@ -91,9 +90,6 @@ function submitRequestWithUser(user, rId) {
 }
 
 
-
-
-
 function createReimbursementObject(uId, rId) {
   if (!validateInput()) {
     return null;
@@ -152,7 +148,6 @@ function createReimbursementObject(uId, rId) {
     'u_id': uId
   };
 
-  console.log(reimbursement);
 
   let attachment = null;
   if (attachment = getAttachments()) {
@@ -168,4 +163,30 @@ function createReimbursementObject(uId, rId) {
     reimbursement,
     attachment
   };
+}
+
+function adjustRequestedAmount(event) {
+  let parent = event.parentElement;
+  const value = event.value;
+  let calculatedReimbursement = event.value;
+  let html = '';
+  if (!isElementValueValid(event)) {
+    html = badInput('Please enter a valid real number value.', 'amount_req_err');
+  } else {
+    let coverage = 30;
+    let maybeOption = findOption('event_type');
+    if(maybeOption) {
+      coverage = Number(maybeOption[1]);
+    }
+    calculatedReimbursement = value * (coverage / 100);
+    html = `
+      <div id="amount_req_info" class="alert alert-info">Given the requested amount of $${value}, we will be able cover ${coverage}% of this amount. As a result, your projected reimbursement will be $${calculatedReimbursement.toFixed(2)}</p>
+    `;
+  }
+  let infoNode = document.getElementById('amount_req_info');
+  if(infoNode) {
+    infoNode.remove();
+  }
+  parent.insertAdjacentHTML('beforeend', html);
+  event.value = calculatedReimbursement;
 }

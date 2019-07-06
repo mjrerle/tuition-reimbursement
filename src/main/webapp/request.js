@@ -16,6 +16,9 @@ function findOption(selectId) {
 }
 
 function isElementValueValid(element) {
+  if(element.type === 'number') {
+    return !isNaN(element.value);
+  }
   return (element.value !== '' || element.value.length !== 0) && typeof (element.value) !== 'undefined';
 }
 

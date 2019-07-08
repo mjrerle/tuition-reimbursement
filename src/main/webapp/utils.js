@@ -1,4 +1,3 @@
-
 function include(filename) {
   var head = document.getElementsByTagName('head')[0];
 
@@ -40,7 +39,7 @@ function isAuthenticated(callback1, callback2) {
   }
 }
 
-function eraseCookie(name) {   
+function eraseCookie(name) {
   setCookie(name, '', 1);
 }
 
@@ -49,12 +48,12 @@ function logout() {
   eraseCookie('loggedInUsername');
   eraseCookie('loggedInUid');
   roles = getRoles(true);
-  roles.forEach(role => {
-    eraseCookie(role.name);
-  });
-  console.log(document.cookie);
+  if (roles) {
+    roles.forEach(role => {
+      eraseCookie(role.name);
+    });
+  }
   window.location.replace('http://localhost:8080/project1/login.html');
-  
 }
 
 
@@ -71,12 +70,18 @@ function prettyPipe(input) {
 }
 
 function getRoles(whole = false) {
-  let rawRoles = readCookie(`userRole_.*`, 0).split(";");
+  let rawRoles = readCookie(`userRole_.*`, 0);
+  if (rawRoles) {
+    rawRoles = rawRoles.split(';');
+  } else {
+    //no roles (cookie probably expired or was deleted)
+    return null;
+  }
   let roles = [];
   rawRoles.forEach(role => {
-    if(whole) {
+    if (whole) {
       roles.push({
-        name: role.split(`=`)[0].trim(), 
+        name: role.split(`=`)[0].trim(),
         value: role.split(`=`)[1].trim()
       });
     } else {

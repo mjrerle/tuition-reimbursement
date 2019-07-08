@@ -1,36 +1,39 @@
+:root {
+  --theme-color: rgb(87, 177, 159);
+}
 body {
   font-family: 'Open Sans', sans-serif;
 }
 
 .btn-outline-info:focus {
-  box-shadow: 0 0 0 .2rem rgb(87, 177, 159);
+  box-shadow: 0 0 0 .2rem var(--theme-color) !important;
+  background-color: var(--theme-color) !important;
 }
 
-.btn-outline-info:focus
+.btn-outline-info:focus,
 .btn-outline-info {
-  color: rgb(87, 177, 159) !important;
-  border-color: rgb(87, 177, 159) !important;
+  color: var(--theme-color) !important;
+  border-color: var(--theme-color) !important;
 }
 
 .btn-outline-info:hover,
-.btn-outline-info:active
- {
-  background-color: rgb(87, 177, 159);
+.btn-outline-info:active {
+  background-color: var(--theme-color) !important;
   color: white !important;
-  border-color: rgb(87, 177, 159) !important;
+  border-color: var(--theme-color) !important;
 }
 
 .bg-info,
 .nav-pills .nav-link.active,
 .btn-primary {
-  background-color: rgb(87, 177, 159) !important;
+  background-color: var(--theme-color) !important;
   color: white !important;
-  border-color: rgb(87, 177, 159) !important;
+  border-color: var(--theme-color) !important;
 }
 
-.text-info,
-a {
-  color: rgb(87, 177, 159) !important;
+a,
+.text-info {
+  color: var(--theme-color) !important;
 }
 
 #landing-page #main {

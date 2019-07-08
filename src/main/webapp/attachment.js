@@ -81,6 +81,6 @@ function prepareAttachment(event, rId) {
 
 function attachmentHtml(attachment) {
   return `
-    <button type="button" id="attachment_${attachment.a_id}" class="list-group-item list-group-item-action" disabled>${attachment.title} - type: ${attachment.type}</button>
+    <button type="button" id="attachment_${attachment.a_id}" class="list-group-item list-group-item-action">${attachment.title} - type: ${attachment.type}</button>
   `;
 }

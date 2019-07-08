@@ -134,7 +134,7 @@ function getUserRequests(user, single = false) {
       getUserSpecificData(reimbursements, user, single);
     } else if (this.readyState === XMLHttpRequest.DONE && this.status === 404) {
       if (!document.getElementById(`err_no_re`) && document.getElementById('reimbursements').childElementCount < 1) {
-        document.getElementById(`reimbursements`).parentElement.insertAdjacentHTML('afterend', `<span id="err_no_re" class="text-danger">No reimbursements found!</span>`);
+        document.getElementById(`reimbursements`).parentElement.insertAdjacentHTML('afterend', `<span id="err_no_re" class="text-danger text-center">No reimbursements found for the logged in user!</span>`);
       }
     }
   }
@@ -261,7 +261,7 @@ function allCommentsHtml(comments, rId) {
 function reimbursementHtml(reimbursement, comments, stats, user) {
   let roles = getRoles();
   let baseHtml = ``;
-  const uId = readCookie('loggedInUid');
+  const uId = +readCookie('loggedInUid');
 
   baseHtml = baseReimbursementHtml(reimbursement, false, stats, user);
   roles.forEach(role => {
@@ -320,17 +320,20 @@ function prepareApproval(rId, stage, amountRequested, status) {
     case 4:
       status = `approval_by_final_benco`;
   }
+
   return {
     'r_id': rId,
     'stage': stage,
-    'amount_request': amountRequested,
+    'amount_requested': amountRequested,
     'status': status
   }
 }
 
-function sendApproval(reimbursement) {
+function sendApproval(reimbursement, event = null) {
+  console.log(reimbursement);
+
   let paramsList = `r_id=${reimbursement.r_id}&stage=${reimbursement.stage}&status=${reimbursement.status}`;
-  if (stage >= 4) {
+  if (reimbursement.stage >= 4) {
     paramsList += `&amount_granted=${reimbursement.amount_requested}&amount_requested=0`;
   }
   let xhttp = new XMLHttpRequest();
@@ -342,7 +345,9 @@ function sendApproval(reimbursement) {
   xhttp.onreadystatechange = function () {
     if (this.readyState === 4 && this.status === 200) {
       document.getElementById(`reimbursement_${reimbursement.r_id}_approve_btn`).disabled = true;
-      event.setAttribute('data-stage', reimbursement.stage + 1);
+      if (event) {
+        event.setAttribute('data-stage', reimbursement.stage + 1);
+      }
       let reListItem = document.getElementById(`reimbursement_${reimbursement.r_id}`);
       if (!document.getElementById(`re_${reimbursement.r_id}_app_success`)) {
         reListItem.insertAdjacentHTML('afterend', successMessage(`Successfully approved reimbursement ${reimbursement.r_id}`, `re_${reimbursement.r_id}_app_success`));
@@ -358,13 +363,15 @@ function approveRequest(event) {
   let amountRequested = event.getAttribute('data-requested');
   let status = `pending_supervisor_approval`;
 
+
   sendApproval(
     prepareApproval(
       rId,
       stage,
       amountRequested,
       status
-    )
+    ),
+    event
   );
 }
 
@@ -428,13 +435,20 @@ function basicReimbursementInformation(reimbursement, final = false, stats, user
     dateHtml = ` and has ${timeLeftOnReimbursement(reimbursement)}`;
     requestingHtml = `<p class="text-dark">Requesting <span class="text-success">$${reimbursement.amount_requested}</span>.</p>`;
   }
-  return `
-    <div class="">
-    <p class="text-info">${user.username} submitted this request on ${new Date(reimbursement.submission_date).toDateString()}</p>
-    <p class="text-dark">Event (ID: ${reimbursement.r_id}) ${reimbursement.event_type} starts on <span class="font-weight-bold"><u>${new Date(reimbursement.event_start_date).toDateString()}</u></span>${dateHtml}</p>
+  if (stats) {
+    stats = `
+      <div class="col-md-4">
+        <h5 class="font-weight-bold text-center">Available funds for ${prettyPipe(user.username)}</h5>
+        ${stats}
+      </div>
+    `;
+    return `
+    <div>
+      <p class="text-info">${user.username} submitted this request on ${new Date(reimbursement.submission_date).toDateString()}</p>
+      <p class="text-dark">Event (ID: ${reimbursement.r_id}) ${reimbursement.event_type} starts on <span class="font-weight-bold"><u>${new Date(reimbursement.event_start_date).toDateString()}</u></span>${dateHtml}</p>
     </div>
     <div class="row">
-      <div class="col-md-5">
+      <div class="col-md-4">
         <p class="text-white bg-info text-center">This request is at the ${prettyPipe(reimbursement.status)} stage.</p>        
         <p class="text-dark">
           <h4 class="text-dark">Description - ${reimbursement.event_description}</h4>
@@ -444,16 +458,38 @@ function basicReimbursementInformation(reimbursement, final = false, stats, user
           ${requestingHtml}
         </p>
         </div>
+      ${stats}
       <div class="col-md-4">
-        <h5 class="font-weight-bold text-center">Available funds for ${prettyPipe(user.username)}</h5>
-        ${stats}
-      </div>
-      <div class="col-md-3">
         <div id="attachments_for_${reimbursement.r_id}_by_${reimbursement.u_id}" class="list-group"></div>
       </div>
     </div>
     <ul class="list-group" id="comments_for_reimbursement_${reimbursement.r_id}">
     `;
+  } else {
+    return `
+      <div>
+        <p class="text-info">${user.username} submitted this request on ${new Date(reimbursement.submission_date).toDateString()}</p>
+        <p class="text-dark">Event (ID: ${reimbursement.r_id}) ${reimbursement.event_type} starts on <span class="font-weight-bold"><u>${new Date(reimbursement.event_start_date).toDateString()}</u></span>${dateHtml}</p>
+      </div>
+      <div class="row">
+        <div class="col-md-6">
+          <p class="text-white bg-info text-center">This request is at the ${prettyPipe(reimbursement.status)} stage.</p>        
+          <p class="text-dark">
+            <h4 class="text-dark">Description - ${reimbursement.event_description}</h4>
+            <blockquote class="blockquote">${reimbursement.justification_comment}
+            <footer class="blockquote-footer"><cite title="Note from the employee">Note from the employee</cite></footer>
+            </blockquote>
+            ${requestingHtml}
+          </p>
+          </div>
+        <div class="col-md-6">
+          <div id="attachments_for_${reimbursement.r_id}_by_${reimbursement.u_id}" class="list-group"></div>
+        </div>
+      </div>
+      <ul class="list-group" id="comments_for_reimbursement_${reimbursement.r_id}">
+    `;
+  }
+  
 }
 
 function showAttachments(event) {
@@ -591,8 +627,8 @@ function openEditForm(event) {
   }
 }
 
-function makeRequestObject(rId) {
-
+function makeRequestObject(event) {
+  const rId = event.value;
   let {
     eventStartDate,
     eventEndDate,
@@ -604,10 +640,13 @@ function makeRequestObject(rId) {
     justificationComment
   } = getDetails(rId);
 
-  let uId = readCookie('loggedInUid');
+  let uId = event.getAttribute('data-uid');
   let selectedEventTypeOption = findOption(`re_${rId}_event_type`);
   let eventType = null;
   let percentCoverage = null;
+  if (eventPassingGrade && typeof eventPassingGrade !== 'number') {
+    eventPassingGrade = eventPassingGrade.value;
+  }
   if (selectedEventTypeOption && selectedEventTypeOption.length > 0) {
     eventType = selectedEventTypeOption[0];
     percentCoverage = selectedEventTypeOption[1];
@@ -641,6 +680,7 @@ function makeRequestObject(rId) {
   if (justificationComment) {
     justificationComment = justificationComment.value;
   }
+
   let reimbursement = {
     'r_id': rId,
     'event_type': eventType,
@@ -711,7 +751,7 @@ function getParamsList(reimbursement) {
 }
 
 function handleConfirm(event) {
-  let reimbursement = makeRequestObject(event.value);
+  let reimbursement = makeRequestObject(event);
 
   const paramsList = getParamsList(reimbursement);
   let xhttp = new XMLHttpRequest();
@@ -737,7 +777,7 @@ function handleConfirm(event) {
 function successMessage(message, id) {
   if (id) {
     return `
-      <span id=${id} class="text-white bg-success">${message}</span>
+      <span id=${id} class="text-white bg-success text-center">${message}</span>
     `;
   }
   return `

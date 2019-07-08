@@ -55,7 +55,7 @@ function requestForm(reimbursement) {
           required placeholder="${reimbursement.justification_comment}"></textarea>
       </div>
 
-      <button onclick="handleConfirm(this)" value="${reimbursement.r_id}" type="button" class="btn btn-primary">Confirm</button>
+      <button onclick="handleConfirm(this)" data-uid="${reimbursement.u_id}" value="${reimbursement.r_id}" type="button" class="btn btn-primary">Confirm</button>
 
     </div>
     <div class="col-md-2"></div>
